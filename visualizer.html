@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizer</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <link rel = "stylesheet" href="visualizer.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;400;500&display=swap" rel="stylesheet">
+    <link rel = "stylesheet" href ="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+</head>
+<body id = "page">
+    <audio id ="audio"></audio>
+    <div class = "visualizer-container">
+        <div class = "visualizer-container-bars" id = "bars"></div>
+        <div class = "bar-color"></div>
+    </div>
+    <div class = "info">
+        <div class = "artist-name" id = "name"><p>Illenium</p></div>
+        <div class = "track-name" id = "song-name"><p>Good Things Fall Apart vs. Sad Songs</p></div>
+        <div class = "song-cover-art-container">
+            <img class = "album-cover" id = "track-art">
+        </div>
+    </div>
+
+    <div class = "options">
+        <div class = "button" id = "options">
+            <i class="fas fa-cog"></i>
+        </div>
+        <div class = "full-screen" id = "full">
+            <i class="fas fa-expand"></i>
+        </div>
+        <div class = "exit-full" id = "exit-full">
+            <i class="fas fa-compress"></i>
+        </div>
+    </div>
+
+    <div id = "overlay">
+        <div class = "exit-button" id = "exit">
+            <i class="fas fa-times"></i>
+        </div>
+        <div class = "background-options" id = "overlay-options">
+            <div class = "color-changer">
+                <div class = "bg-color-changer" id = "bg-color">
+                    <h1>Change Background Color</h1>
+                    <div class = "inputs" id = "bg-buttons">
+                        <input type = "text" id = "colorInputText" value = "Enter a hex or rgb code">
+                        <input type ="color" id = "colorInput" onchange="saveValue(this);">
+                        <input type = "button" id = "colorButton" value = "Change Background Color" onclick = "changeColor()"> 
+                    </div>
+                </div>
+        
+                <div class = "artist-name-color-changer" id = "name-color">
+                    <h1>Change Artist Name Color</h1>
+                    <div class ="inputs" id = "name-buttons">
+                        <input type = "text" id = "colorInputTextName" value = "Enter a hex or rgb code" >
+                        <input type ="color" id = "colorInputName">
+                        <input type = "button" id = "colorButtonName" value = "Change Artist Name Color" onclick = "changeColorName()"> 
+                    </div>
+                </div>
+        
+                <div class = "song-name-color-changer" id= "song-color">
+                    <h1>Change Song Name Color</h1>
+                    <div class = "inputs" id= "song-buttons">
+                        <input type = "text" id = "colorInputTextSong" value = "Enter a hex or rgb code" >
+                        <input type ="color" id = "colorInputSong">
+                        <input type = "button" id = "colorButtonSong" value = "Change Song Name Color" onclick = "changeColorSong()"> 
+                    </div>
+                </div>
+        
+                <div class = "bar-color-changer" id ="bar-color">
+                    <h1>Change Visualizer Bar Color</h1>
+                    <div class = "inputs" id = "bar-buttons">
+                        <input type = "text" id = "colorInputTextBar" value = "Enter a hex or rgb code" >
+                        <input type ="color" id = "colorInputBar">
+                        <input type = "button" id = "colorButtonBar" value = "Change Bar Color" onclick = "changeColorBars()"> 
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class = "playback-controls">
+        <div class = "buttons">
+            <a href = "#" id = "buttons" onclick="previousTrack();"><i class = "fas fa-angle-double-left"></i></a>
+            <a href = "#" class = "play-pause" id = "pause" onclick="checkAudio();"><i class = "fas fa-play-circle"></i></a>
+            <a href = "#" id = "next" onclick="nextTrack();"><i class = "fas fa-angle-double-right"></i></a>
+        </div>
+    </div>
+
+    <div class ="time" id = "time">
+        <p>0:00</p>
+    </div>
+
+    <div class = "hidden-slider">
+        <input id = "slider" type = "range" min="0" max="100" value="0" onchange="change_duration();">
+    </div>
+
+    <div class = "progress-bar">
+        <div class = "fill" id = "fill" onclick="seek(event, this);">
+        </div>
+    </div>
+
+    <!-----------Scripts---------->
+    <script src = "musicapp.js"></script>
+    <script src = "customize.js"></script>
+    <script src = "visualizer.js"></script>
+    <script>
+        //Animate on Scroll initialize
+        AOS.init();
+    </script>
+
+    <script>
+function millisToMinutesAndSeconds(millis) {
+  var minutes = Math.floor(millis / 60000);
+  var seconds = ((millis % 60000) / 1000).toFixed(0);
+  return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+}
+
+jQuery( document ).ready(function() {
+    console.log( "ready!" );
+});
+
+/**
+ * Callback for Spotify when SDK is ready
+ */
+window.onSpotifyWebPlaybackSDKReady = () => {
+  const player = new Spotify.Player({
+    name: 'Web Playback SDK Quick Start Player',
+    getOAuthToken: cb => { cb(token); },
+    volume: 0.8
+  });
+  var setintId = 0;
+  var progressMs = 0;
+  var progressBar = jQuery('#song-progress .noUi-origin');
+  // Playback status updates
+  player.addListener('player_state_changed', state => {
+      if (state != null) {
+          jQuery('.current-track__progress__finish').text(millisToMinutesAndSeconds(state.duration));
+          if (state.paused) {
+              jQuery('.current-track').find('.play').addClass('ion-ios-play').removeClass('ion-ios-pause');
+          } else {
+              jQuery('.current-track').find('.play').addClass('ion-ios-pause').removeClass('ion-ios-play');
+          }
+          clearInterval(setintId);
+          progressMs = state.position;
+          // progress bar logic
+          if (state.paused == false) {
+              setintId = setInterval(function (state) {
+                  progressMs += 1000;
+                  let progressPercentage = progressMs / state.duration * 100;
+                  document.getElementById('song-progress').noUiSlider.set(progressPercentage);
+
+                  //progressBar.css('left',progressPercentage.toFixed(1) + '%');
+                  jQuery('.current-track__progress__start').text(millisToMinutesAndSeconds(progressMs));
+                  if (progressMs >= state.duration) {
+                      clearInterval(setintId);
+                  }
+              }, 1000, state);
+          }
+      }
+  });
+
+    // Seek to a minute into the track
+    progressBar.find('.noUi-handle').on('mousedown',function(){
+        clearInterval(setintId);
+    });
+    progressBar.find('.noUi-handle').on('mouseup',function(){
+        player.getCurrentState().then(state => {
+              if (!state) {
+                console.error('User is not playing music through the Web Playback SDK');
+                return;
+              }
+                var percentage = parseInt(progressBar.css('left')) /  parseInt(progressBar.parent().width()) * 100;
+                document.getElementById('song-progress').noUiSlider.set(percentage);
+                var seekTo = ( parseInt( percentage ) / 100 ) * state.duration;
+                player.seek(seekTo).then(() => {
+                  console.log('Changed position!');
+                });
+        });
+    });
+
+  // Error handling
+  player.addListener('initialization_error', ({ message }) => { alert(message); });
+  player.addListener('authentication_error', ({ message }) => { alert(message); });
+  player.addListener('account_error', ({ message }) => { alert(message); });
+  player.addListener('playback_error', ({ message }) => { alert(message); });
+
+
+  // Ready
+  player.addListener('ready', ({ device_id }) => {
+        var playerSkin = jQuery('.current-track');
+        var trackList  = jQuery('.tracks');
+        var tracks = [];
+
+        if (typeof search_artist !== "undefined") {
+            fetch('https://api.spotify.com/v1/search/?q=' + search_artist + '&type=artist', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+            }).then(function(response) {
+                return response.json();
+            }).then((response)=>{
+                var artists = response.artists;
+                var firstItemId = artists.items[0].id;
+                getTopTenTracks(firstItemId);
+            }).catch((error)=>{
+                console.log('error',error);
+            });
+        }
+
+        function getTopTenTracks(artistID) {
+            fetch('https://api.spotify.com/v1/artists/'+ artistID +'/top-tracks?market=from_token', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+            }).then(function(response) {
+                return response.json();
+            }).then((response)=>{
+                var tracksGot = response.tracks;
+                parseTracksList(tracksGot);
+                trackList  = jQuery('.tracks');
+                trackList.find('.track').each(function(){
+                    tracks.push(jQuery(this).data('uri'));
+                });
+
+                // setUpListeners();
+                fetch('https://api.spotify.com/v1/me/player/play?device_id=' + device_id, {
+                    method: 'PUT',
+                    body: JSON.stringify({uris: tracks}),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                }).then(function (response) {
+                    setUpListeners();
+                });
+            }).catch((error)=>{
+                console.log('error',error);
+            });
+        }
+
+        function parseTracksList(tracks) {
+            for (var i = 0; i < tracks.length; i++) {
+                appendTrackToHtml(tracks[i],i);
+            }
+        }
+
+        var artistContent = document.getElementById('search_artist_content');
+
+        function appendTrackToHtml(track, iterator) {
+            var wrapper = document.createElement('div');
+            wrapper.className='tracks songTrack';
+            var trackDiv = document.createElement('div');
+            trackDiv.className = 'track';
+            trackDiv.setAttribute('data-uri',track.uri);
+
+            var imgWrapper = document.createElement('div');
+            imgWrapper.className = 'track__art';
+            var trackArt = document.createElement("img");
+            trackArt.src = track.album.images[2].url;
+            imgWrapper.appendChild(trackArt);
+            trackDiv.appendChild(imgWrapper);
+
+            var counter = document.createElement('div');
+            counter.className = 'track__number';
+            counter.append(iterator);
+            trackDiv.append(counter);
+
+            var checkMarkWrap = document.createElement('div');
+            checkMarkWrap.className = 'track__added';
+            var icon = document.createElement('i');
+            icon.className = 'ion-checkmark-round added';
+            checkMarkWrap.appendChild(icon);
+            trackDiv.appendChild(checkMarkWrap);
+
+            var trackTitle = document.createElement('div');
+            trackTitle.className = 'track__title';
+            trackTitle.append(track.name);
+            trackDiv.appendChild(trackTitle);
+
+            wrapper.appendChild(trackDiv);
+            artistContent.appendChild(wrapper);
+        }
+
+        if (typeof search_artist === "undefined") {
+            trackList.find('.track').each(function(){
+                tracks.push(jQuery(this).data('uri'));
+            });
+
+            //Start to play
+            fetch('https://api.spotify.com/v1/me/player/play?device_id=' + device_id, {
+                method: 'PUT',
+                body: JSON.stringify({uris: tracks}),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+            });
+
+            setUpListeners();
+        }
+
+        function setUpListeners() {
+
+            // Change track from OverView list
+            trackList.on('click','.track',function(){
+
+                fetch('https://api.spotify.com/v1/me/player/play?device_id=' + device_id, {
+                    method: 'PUT',
+                    body: JSON.stringify({ uris: [jQuery(this).data('uri')] }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                });
+
+            });
+
+            // Start to play all tracks by clicking play button of artist
+            jQuery('.artist__info__actions button.button-dark').on('click', function () {
+
+                fetch('https://api.spotify.com/v1/me/player/play?device_id=' + device_id, {
+                    method: 'PUT',
+                    body: JSON.stringify({uris: tracks}),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                });
+
+            });
+
+
+            //Play button
+            playerSkin.find('.play').on('click', function () {
+                jQuery(this).toggleClass('ion-ios-play ion-ios-pause');
+                console.log('play clicked');
+                player.togglePlay().then(() => {
+                    console.log('Toggled playback!');
+                });
+            });
+
+            //Volume button
+            playerSkin.find('#song-volume .noUi-origin').on('mouseup', function () {
+                let width = parseInt(playerSkin.find('#song-volume .noUi-base').width());
+                let volume = parseInt(jQuery(this).css('left')) / width;
+
+                player.setVolume(volume.toFixed(1)).then(() => {
+                    // Switch buttons
+                    if (volume == 0) {
+                        playerSkin.find('.control.volume i').addClass('ion-volume-mute').removeClass('ion-volume-hight');
+                    } else {
+                        playerSkin.find('.control.volume i').addClass('ion-volume-hight').removeClass('ion-volume-mute');
+                    }
+                });
+            });
+
+            //Mute button
+            playerSkin.on('click', '.control.volume i.ion-volume-high', function () {
+                player.setVolume(0).then(() => {
+                    playerSkin.find('.control.volume i').addClass('ion-volume-mute').removeClass('ion-volume-high');
+                    playerSkin.find('#song-volume .noUi-origin').css('left', '0%');
+                });
+            });
+
+            //Unmute button
+            playerSkin.on('click', '.control.volume i.ion-volume-mute', function () {
+                player.setVolume(0.5).then(() => {
+                    playerSkin.find('.control.volume i').addClass('ion-volume-high').removeClass('ion-volume-mute');
+                    playerSkin.find('#song-volume .noUi-origin').css('left', '50%');
+                });
+            });
+
+            // Next track
+            playerSkin.find('.ion-ios-skipforward').on('click', function () {
+                player.nextTrack().then(() => {
+                    console.log('Skipped to next track!');
+                });
+            });
+
+
+            //Prev track
+            playerSkin.find('.ion-ios-skipbackward').on('click', function () {
+                player.previousTrack().then(() => {
+                    console.log('Set to previous track!');
+                });
+            });
+
+            // Change position and Duration
+            player.addListener('player_state_changed', ({
+                                                            position,
+                                                            duration,
+                                                            track_window: {current_track}
+                                                        }) => {
+                jQuery('.playing__song__name').text(current_track.name);
+                jQuery('.playing__song__artist').text(current_track.artists[0].name);
+                jQuery('.playing__art img').attr('src', current_track.album.images[0].url);
+                //Set active item in list
+                trackList.find('.track').removeClass('playing');
+                trackList.find('[data-uri="' + current_track.uri + '"]').addClass('playing');
+            });
+        }
+
+  });
+
+  // Connect to the player!
+  player.connect();
+};
+    </script>
+</body>
+</html>
